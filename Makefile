@@ -1,6 +1,10 @@
 
+CUR_DIR = .
+INC_DIR = $(CUR_DIR)/../yinyang/frontend/Interfaces
+CXX_DIR = $(CUR_DIR)/../yinyang/llvm/build/bin/
+LD_FLAGS = -ljpeg -lpng -Wall
 neo :	img_exa.cpp
-	../yinyang/llvm/build/bin/clang++  -o neo -I/home/regaltos/dev/llvm_dev/yinyang/frontend/Interfaces img_exa.cpp -ljpeg -lpng -Wall
-clean:
+	$(CXX_DIR)/clang++ -I$(INC_DIR)  $^ -o $@ $(LD_FLAGS)
+c:
 	rm neo 
 

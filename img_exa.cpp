@@ -10,7 +10,7 @@ void print(const std::string &s ="Out",T x=0)
 }
 int main()
 {
-	Img<float,2> myexa =imread<float,2>("/home/regaltos/dev/llvm_dev/yinyang/tests/Interface/core/TestGrayImage.jpg",dip::IMGRD_GRAYSCALE);
+	Img<float,2> myexa =imread<float,2>("./Img_dir/TestGrayImage.jpg",dip::IMGRD_GRAYSCALE);
 
 	size_t n=myexa.getRank();
 	print<size_t>("My Rank",n);
