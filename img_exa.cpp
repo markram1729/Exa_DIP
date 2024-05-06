@@ -9,6 +9,30 @@ void print(const std::string &s ="Out",T x=0)
 {
 	std::cout<<s<<" "<<x<<std::endl;
 }
+
+bool testcvdp(cv::Mat imgcv,Img<float,2> myexa)
+{
+	if(myexa.getSizes()[0]!=imgcv.rows|| myexa.getSizes()[1]!=imgcv.cols)
+	{
+		return false;
+	}
+	auto *data=myexa.getData();
+	int k=0;
+	for(size_t i=0;i<myexa.getSizes()[0];i++)
+	{
+		for(size_t j=0;j<myexa.getSizes()[1];j++)
+		{
+			if(data[k]!=imgcv.at<uchar>(i,j))
+			{
+				std::cout<<"Not equal at  "<<i<<"-"<<j<<std::endl;
+				std::cout<<imgcv<<std::endl;
+				return false;
+			}
+			k++;
+		}
+	}
+	return true;
+}
 int main()
 {
 	Img<float,2> myexa =imread<float,2>("./Img_dir/TestGrayImage.jpg",dip::IMGRD_GRAYSCALE);
@@ -39,12 +63,11 @@ int main()
 	}
 	print<int>("channels",myex2.channels());
 	cv::Mat img2cv=cv::imread("./Img_dir/TestGrayImage.jpg",cv::IMREAD_GRAYSCALE);
-//	img2cv = img2cv/255.0;
 	std::cout<<"Print Mat \n"<<img2cv<<std::endl;
-	cv::Mat check_img;//=cv::Mat::zeros(img2cv.rows,img2cv.cols,CV_32F);
-	//std::cout<<"dd \n"<<check_img<<std::endl;
-	//cv::normalize(img2cv,check_img,0,1,cv::NORM_MINMAX,CV_32F);
+	cv::Mat check_img(img2cv.rows,img2cv.cols,CV_32F);
 	img2cv.convertTo(check_img,CV_32FC1,1.f/255);
 	std::cout<<"dd \n"<<check_img<<std::endl;
+	bool s =testcvdp(img2cv,myexa);
+	std::cout<<"out --> "<<s<<std::endl;
 	return 0;
 }
