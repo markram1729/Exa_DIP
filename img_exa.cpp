@@ -22,7 +22,7 @@ bool testcvdp(cv::Mat imgcv,Img<float,2> myexa)
 	{
 		for(size_t j=0;j<myexa.getSizes()[1];j++)
 		{
-			if(data[k]!=imgcv.at<uchar>(i,j))
+			if(std::abs(data[k]-imgcv.at<uchar>(i,j))<0.000001)
 			{
 				std::cout<<"Not equal at  "<<i<<"-"<<j<<std::endl;
 				std::cout<<imgcv<<std::endl;
@@ -54,6 +54,7 @@ int main()
 	}
 	cv::Mat imo = cv::imread("./Img_dir/TestGrayImage.jpg",cv::IMREAD_GRAYSCALE);
 	//intptr_t sizescv[2]={0};
+	//testcvdp(imo,);
 	print("mat channels",imo.channels());
 	Img<float,2> myex2(imo,nullptr,true);
 	float *datacv = myex2.getData();
@@ -67,7 +68,7 @@ int main()
 	cv::Mat check_img(img2cv.rows,img2cv.cols,CV_32F);
 	img2cv.convertTo(check_img,CV_32FC1,1.f/255);
 	std::cout<<"dd \n"<<check_img<<std::endl;
-	bool s =testcvdp(img2cv,myexa);
+	bool s =testcvdp(check_img,myex2);
 	std::cout<<"out --> "<<s<<std::endl;
 	return 0;
 }
