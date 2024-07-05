@@ -2,3 +2,5 @@
 //swap files
 *.swp
 neo
+CMakeLists.txt
+build/
