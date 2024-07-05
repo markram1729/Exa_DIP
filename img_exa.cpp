@@ -16,13 +16,50 @@ bool compare(float a,float b)
 	if(a==b) return true;
 	float eps = a-b;
 	if(eps<0)eps=-eps;
-	if(eps<FLT_EPSILON) return true;
+	// if(eps<FLT_EPSILON) return true;
 
-	return false;
+	return (std::abs(a - b)< FLT_EPSILON);
 }
-bool testcvdp(cv::Mat imgcv,Img<float,2> myexa,bool norm)
+
+template <typename T,size_t N>
+bool testcvdp(cv::Mat imgcv,Img<T,N> myexa,bool norm,intptr_t sizes[N]=nullptr)
 {
-	if(myexa.getSizes()[0]!=imgcv.rows|| myexa.getSizes()[1]!=imgcv.cols)
+	if(N==4)
+	{
+		if(imgcv.dims!=N || sizes==nullptr)
+		{
+			std::cout<<"Given dims "<<imgcv.dims<<"nullptr"<<std::endl;
+			return false ;
+		}
+		float *data = myexa.getData();
+		size_t samples = imgcv.size[0];
+		size_t channels = imgcv.size[1];
+		size_t rows = imgcv.size[2];
+		size_t cols = imgcv.size[3];
+		int k=0;
+		for(size_t i=0;i<samples;i++)
+		{
+			for(size_t chn =0;chn<channels;chn++)
+			{
+				T* chndata = imgcv.ptr<T>(i,chn);
+				for(size_t m=0;k<rows;m++)
+				{
+					for(size_t l=0;l<cols;l++)
+					{
+						if(!compare(data[k],chndata[m*cols+l]))
+						{
+							return false ;
+						}
+						k++;
+					}
+				}
+			}
+		}
+		return true;
+	}
+	else if(N==2)
+	{
+		if(myexa.getSizes()[0]!=imgcv.rows|| myexa.getSizes()[1]!=imgcv.cols)
 	{
 		return false;
 	}
@@ -79,10 +116,13 @@ bool testcvdp(cv::Mat imgcv,Img<float,2> myexa,bool norm)
 		}
 	}
 	return true;
+	}
+	
+	
 }
 int main()
 {
-	Img<float,2> myexa =imread<float,2>("./Img_dir/TestGrayImage.jpg",dip::IMGRD_GRAYSCALE);
+	Img<float,2> myexa =imread<float,2>("./Img_dir/TestGrayImage.jpg",dip::IMGRD_COLOR);
 
 	size_t n=myexa.getRank();
 	print<size_t>("My Rank",n);
@@ -104,7 +144,7 @@ int main()
 	//testcvdp(imo,);
 	print("mat channels",imo.channels());
 	std::cout<<"test Mat"<<imo<<std::endl;
-	bool k=testcvdp(imo,myexa,false);
+	bool k=testcvdp<float,2>(imo,myexa,false);
 	print<bool>("bool k",k);
 	Img<float,2> myex2(imo,nullptr,true);
 	float *datacv = myex2.getData();
@@ -118,7 +158,37 @@ int main()
 	cv::Mat check_img(img2cv.rows,img2cv.cols,CV_32FC1);
 	img2cv.convertTo(check_img,CV_32FC1,1.f/255);
 	std::cout<<"dd \n"<<check_img<<std::endl;
-	bool s =testcvdp(check_img,myex2,true);
+	bool s =testcvdp<float,2>(check_img,myex2,true);
 	std::cout<<"out --> "<<s<<std::endl;
+
+	std::vector<cv::Mat> vec_img = {img2cv,imo};
+	double norm=1.0;
+	cv::Mat blob = cv::dnn::blobFromImages(vec_img,norm,cv::Size(img2cv.cols,img2cv.rows));
+
+	std::cout<<"Sizes "<<blob.size()<<" "<<blob.size[0]<<" "<<blob.size[1]<<" "<<blob.size[2]<<" "<<blob.size[3]<<std::endl;
+	intptr_t sizes[4]={blob.size[0],blob.size[1],blob.size[2],blob.size[3]};
+	Img<float,4>myexacv4(blob,sizes,false);	
+	float *cv4data = myexacv4.getData();
+	int cv4ele = myexacv4.getSize();
+	std::cout<<" dims "<<blob.dims<<std::endl;
+	for(size_t i =0;i<cv4ele;i++)
+	{
+		print<float>(" ",cv4data[i]);
+	}
+	bool cv4k = testcvdp<float,4>(blob,myexacv4,false,sizes);
+	std::cout<<"just checkin "<<cv4k<<std::endl;
+
+	cv::Mat blob2 = cv::dnn::blobFromImages(vec_img,1.0f/255.0,cv::Size(img2cv.cols,img2cv.rows));
+	
+	Img<float,4>myexacv4n(blob2,sizes,false);	
+	float *cv4ndata = myexacv4n.getData();
+	int cv4nele = myexacv4n.getSize();
+	std::cout<<" dims "<<blob2.dims<<std::endl;
+	for(size_t i =0;i<cv4ele;i++)
+	{
+		print<float>(" ",cv4ndata[i]);
+	}
+	bool cv4k2 = testcvdp<float,4>(blob2,myexacv4n,false);
+	std::cout<<"just checkin "<<cv4k2<<std::endl;
 	return 0;
 }
